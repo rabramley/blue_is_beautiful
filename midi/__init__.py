@@ -17,18 +17,25 @@ class MidiConnector():
         self.out_port_name = out_port_name
         self.out_channel = out_channel
     
-    def set_midi_queue(self, midi_queue: Midi):
+    def attach_to_midi(self, midi_queue: Midi, port_manager: MidiPortManager):
+        in_port = port_manager.get_in_port(self.in_port_name)
+        in_port.register_connection(self.in_channel, self)
+        out_port = port_manager.get_out_port(self.out_port_name)
+        out_port.register_connection(self.out_channel, self)
+
         self._midi_queue = midi_queue
+        self.out_port_name_actual = out_port.name
 
     def send_message(self, message: Message):
         new_message = message.copy(channel=self.out_channel)
         logging.info(f'MidiConnector:send_message: sending message {new_message}')
 
-        self._midi_queue.queue_message(self.out_port_name, new_message)
+        self._midi_queue.queue_message(self.out_port_name_actual, new_message)
 
 class MidiPort():
-    def __init__(self, port: BasePort):
+    def __init__(self, port: BasePort, name: str):
         self.port = port
+        self.name = name
         self.channels = []
 
         for i in range(16):
@@ -55,10 +62,10 @@ class MidiPortManager():
         if port_name in self.in_ports:
             return self.in_ports[port_name]
         
-        for pn in mido.get_input_names():
-            if pn.startswith(port_name):
-                self.in_ports[port_name] = MidiPort(mido.open_input(pn))
-                return self.in_ports[port_name]
+        for port_name_actual in mido.get_input_names():
+            if port_name_actual.startswith(port_name):
+                self.in_ports[port_name_actual] = MidiPort(mido.open_input(port_name_actual), port_name_actual)
+                return self.in_ports[port_name_actual]
         else:
             raise ValueError(f'Input MIDI port {port_name} not found')
 
@@ -66,10 +73,10 @@ class MidiPortManager():
         if port_name in self.out_ports:
             return self.out_ports[port_name]
         
-        for pn in mido.get_output_names():
-            if pn.startswith(port_name):
-                self.out_ports[port_name] = MidiPort(mido.open_output(pn))
-                return self.out_ports[port_name]
+        for port_name_actual in mido.get_output_names():
+            if port_name_actual.startswith(port_name):
+                self.out_ports[port_name_actual] = MidiPort(mido.open_output(port_name_actual), port_name_actual)
+                return self.out_ports[port_name_actual]
         else:
             raise ValueError(f'Output MIDI port {port_name} not found')
 
@@ -83,12 +90,7 @@ class Midi(threading.Thread):
         self._port_manager = MidiPortManager()
 
     def register_connector(self, connector: MidiConnector):
-        in_port = self._port_manager.get_in_port(connector.in_port_name)
-        in_port.register_connection(connector.in_channel, connector)
-        out_port = self._port_manager.get_out_port(connector.out_port_name)
-        out_port.register_connection(connector.out_channel, connector)
-
-        connector.set_midi_queue(self)
+        connector.attach_to_midi(self, self._port_manager)
 
     def queue_message(self, port_name: str, message: Message):
         logging.info(f'Midi:queue_message: Queuing message {message} roport {port_name}')
@@ -103,7 +105,7 @@ class Midi(threading.Thread):
             try:
                 message, port_name = self.queue.get(timeout=1)
                 logging.info(f'Midi:run: sending message {message} to port {port_name}')
-                port = self._port_manager.get_out_port(port_name)
+                port = self._port_manager.out_ports[port_name]
                 port.port.send(message)
             except queue.Empty:
                 logging.info(f'Midi:run: Empty')
