@@ -1,9 +1,22 @@
+ports:
+ - name: keystep
+   port_name: Arturia KeyStep 32:Arturia KeyStep 32 MIDI 1
+ - name: nanoKontrol
+   port_name: nanoKONTROL2:nanoKONTROL2 nanoKONTROL2 _ CTR
+ - name: Cycles
+   port_name: Elektron Model:Cycles
+ - name: Midihub 1
+   port_name: Midihub MH-0Q23ZT8:Midihub MH-0Q23ZT8 MIDI 1
 connectors:
- - in_port_name: nanoKONTROL2:nanoKONTROL2 nanoKONTROL2 _ CTR
+ - in_port_name: nanoKontrol
    in_channel: 0
-   out_port_name: Midihub MH-0Q23ZT8:Midihub MH-0Q23ZT8 MIDI 1
+   out_port_name: Midihub 1
    out_channel: 1
- - in_port_name: Arturia KeyStep 32:Arturia KeyStep 32 MIDI 1
+ - in_port_name: keystep
    in_channel: 0
-   out_port_name: Elektron Model:Cycles
+   out_port_name: Cycles
    out_channel: 0
+ - in_port_name: keystep
+   in_channel: 1
+   out_port_name: Cycles
+   out_channel: 1
