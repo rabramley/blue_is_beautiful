@@ -1,3 +1,4 @@
+bpm: 80
 ports:
  - name: keystep
    port_name: Arturia KeyStep 32:Arturia KeyStep 32 MIDI 1

@@ -98,6 +98,34 @@ class PortManager():
                 return mido.open_output(port_name_actual)
 
 
+class Clock():
+    NANO_SECONDS_PER_MINUTE = 60_000_000_000
+    PPQN = 24
+
+    def __init__(self, bpm: int):
+        self.bpm = bpm
+        self.interval = int(Clock.NANO_SECONDS_PER_MINUTE / bpm / Clock.PPQN)
+    
+    def attach_to_midi(self, midi_queue: Midi, port_manager: PortManager):
+        self._midi_queue = midi_queue
+        self._port_manager = port_manager
+
+    def start(self):
+        self.beat = 0
+        self.next = time.monotonic_ns() + self.interval
+
+    def tick(self):
+        if self.next < time.monotonic_ns():
+            self.beat += 1
+            self.next += self.interval
+
+            message = Message('clock')
+        
+            for p in self._port_manager.out_ports:
+                logging.info(f'MidiConnector:send_message: sending message {message}')
+                self._midi_queue.queue_message(p, message)
+
+
 class Midi(threading.Thread):
     def __init__(self, port_manager: PortManager):
         super().__init__()
@@ -105,21 +133,33 @@ class Midi(threading.Thread):
         self.queue = Queue()
         self._done = False
         self._port_manager = port_manager
+        self._clocks = []
 
     def register_connector(self, connector: MidiConnector):
         connector.attach_to_midi(self, self._port_manager)
 
+    def register_clock(self, clock: Clock):
+        clock.attach_to_midi(self, self._port_manager)
+        self._clocks.append(clock)
+
     def queue_message(self, port_name: str, message: Message):
-        logging.info(f'Midi:queue_message: Queuing message {message} roport {port_name}')
+        logging.info(f'Midi:queue_message: Queuing message {message} to port {port_name}')
         self.queue.put((message, port_name))
 
     def run(self):
         logging.info('Midi:run: Running')
+        
+        for c in self._clocks:
+            c.start()
 
         while not self._done:
             logging.info(f'Midi:run: looping')
+
+            for c in self._clocks:
+                c.tick()
+
             try:
-                message, port_name = self.queue.get(timeout=1)
+                message, port_name = self.queue.get(timeout=0.01)
                 logging.info(f'Midi:run: sending message {message} to port {port_name}')
                 port = self._port_manager.out_ports[port_name]
                 port.port.send(message)

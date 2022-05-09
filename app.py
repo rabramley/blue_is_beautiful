@@ -1,10 +1,10 @@
-from datetime import datetime
 from rich.align import Align
 from textual.app import App
 from textual.widget import Widget
-from midi import Midi, midi, MidiConnector, PortManager
+from midi import Clock, Midi, MidiConnector, PortManager
 import logging
 import yaml
+from time import monotonic_ns
 
 
 with open('config.yaml') as f:
@@ -14,16 +14,14 @@ logging.basicConfig(level=logging.WARN)
 # logging.basicConfig(level=logging.INFO)
 
 
-class Clock(Widget):
+class Display(Widget):
     def on_mount(self):
-        self._value = ''
+        self.interval = ''
+        self.next = ''
+        self.beat = ''
 
     def render(self):
-        return Align.center(self._value, vertical="middle")
-
-    def v(self, value):
-        self._value = value
-        self.refresh()
+        return Align.center(f'{self.interval}: {self.next}  {self.beat}', vertical="middle")
 
 
 class BlueApp(App):
@@ -31,14 +29,18 @@ class BlueApp(App):
         await self.bind("q", "quit")
         self.port_manager = PortManager(config)
         self.midi = Midi(self.port_manager)
-        self.midi.start()
 
         for c in config['connectors']:
             self.midi.register_connector(MidiConnector(**c))
 
+        self.clock = Clock(bpm=config['bpm'])
+        self.midi.register_clock(self.clock)
+
+        self.midi.start()
+
     async def on_mount(self):
-        self._clock = Clock()
-        await self.view.dock(self._clock)
+        self._display = Display()
+        await self.view.dock(self._display)
         self.set_interval(1, self.tick)
     
     async def shutdown(self):
@@ -48,8 +50,10 @@ class BlueApp(App):
         self.midi.join()
 
     async def tick(self):
-        time = datetime.now().strftime("%c")
-        self._clock.v(f'iuhweh {time}')
+        self._display.interval = self.clock.interval
+        self._display.next = self.clock.next
+        self._display.beat = self.clock.beat
+        self._display.refresh()
 
     
 BlueApp.run()
