@@ -115,7 +115,6 @@ class Midi(threading.Thread):
 
     def run(self):
         logging.info('Midi:run: Running')
-        i = 0
 
         while not self._done:
             logging.info(f'Midi:run: looping')
