@@ -1,18 +1,18 @@
+from rich import traceback
 from rich.align import Align
 from textual.app import App
 from textual.widget import Widget
 from midi import Clock, Midi, MidiConnector, PortManager
 import logging
 import yaml
-from time import monotonic_ns
 
+traceback.install()
 
 with open('config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 logging.basicConfig(level=logging.WARN)
 # logging.basicConfig(level=logging.INFO)
-
 
 class Display(Widget):
     def on_mount(self):

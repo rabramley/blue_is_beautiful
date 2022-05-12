@@ -2,6 +2,68 @@ bpm: 80
 ports:
  - name: keystep
    port_name: Arturia KeyStep 32:Arturia KeyStep 32 MIDI 1
+   per_track_ccs:
+    - name: note
+      cc: 3
+    - name: mute
+      cc: 3
+    - name: level
+      cc: 95
+    - name: pan
+      cc: 10
+    - name: pitch
+      cc: 65
+    - name: decay
+      cc: 80
+    - name: color
+      cc: 16
+    - name: shape
+      cc: 17
+    - name: sweep
+      cc: 18
+    - name: contour
+      cc: 19
+    - name: delay send
+      cc: 12
+    - name: reverb send
+      cc: 13
+    - name: volume distortion
+      cc: 7
+    - name: swing
+      cc: 15
+    - name: chance
+      cc: 15
+    - name: punch
+      cc: 66
+    - name: gate
+      cc: 67
+    - name: lfo speed
+      cc: 102
+    - name: lfo multiplier
+      cc: 103
+    - name: lfo fade
+      cc: 104
+    - name: lfo destination
+      cc: 105
+    - name: lfo waveform
+      cc: 106
+    - name: lfo start phase
+      cc: 107
+    - name: lfo reset
+      cc: 108
+    - name: lfo depth msb
+      cc: 109
+    - name: lfo depth lsb
+      cc: 110
+   global_ccs:
+    - name: delay time
+      cc: 85
+    - name: delay feedback
+      cc: 86
+    - name: reverb size
+      cc: 87
+    - name: reverb tone
+      cc: 88
  - name: nanoKontrol
    port_name: nanoKONTROL2:nanoKONTROL2 nanoKONTROL2 _ CTR
  - name: Cycles

@@ -1,1 +1,69 @@
 # blue_is_beautiful
+
+## Feature suggestions:
+
+- Sequencer
+- Midi looper
+- Turin machine:
+ - notes
+ - velocity
+ - timing?
+ - cc - filter
+ - gate
+- Euclidian sequencer
+- Phrase sequencer
+  - shape
+  - depth
+  - phase
+  - length
+- humaniser
+- quantiser
+- groove library
+- chord library
+- rhythm library
+- pattern library
+- song mode:
+    - program changes
+    - auto step advance
+    - manual step advance
+    - manual select step
+    - auto step advance with stay on current step
+    - tempo changes
+    - key changes
+- lfos
+  - shape
+    - sine
+    - triangle
+    - square
+    - pulse
+    - saw
+    - ramp
+    - random
+  - quantised or continuous
+  - restart
+  - phase
+  - shape distortion
+  - speed
+  - depth
+  - tempo sync
+- envelope
+- automation record
+- randomiser:
+    - timing
+    - gate
+    - velocity
+    - octave
+    - note
+    - cc - filter etc
+- chance and conditional steps
+- quantiser
+- round robin
+- volca velocity
+- polyrhythm
+- polymeter
+- controller
+ - sliders / knobs
+ - momentary button
+ - latched button
+ - transport controls
+ - banks
