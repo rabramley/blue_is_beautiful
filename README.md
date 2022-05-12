@@ -30,6 +30,10 @@
     - auto step advance with stay on current step
     - tempo changes
     - key changes
+- ratchets
+- arpegiator
+- ratchets with arpegiator
+- midi repeater
 - lfos
   - shape
     - sine
