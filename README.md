@@ -34,6 +34,9 @@
 - arpegiator
 - ratchets with arpegiator
 - midi repeater
+- midi chord strummer
+- midi chord inverter
+- midi chord spreader
 - lfos
   - shape
     - sine
