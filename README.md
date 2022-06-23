@@ -37,6 +37,9 @@
 - midi chord strummer
 - midi chord inverter
 - midi chord spreader
+- midi delayer
+- midi transposer
+- midi chancer
 - lfos
   - shape
     - sine
@@ -66,6 +69,10 @@
 - quantiser
 - round robin
 - volca velocity
+- velocity to:
+  - cc - e.g., filter
+  - pitch - micropitch
+  - gate?
 - polyrhythm
 - polymeter
 - controller

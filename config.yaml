@@ -1,4 +1,4 @@
-bpm: 80
+bpm: 120
 ports:
  - name: keystep
    port_name: Arturia KeyStep 32:Arturia KeyStep 32 MIDI 1
@@ -68,6 +68,8 @@ ports:
    port_name: nanoKONTROL2:nanoKONTROL2 nanoKONTROL2 _ CTR
  - name: Cycles
    port_name: Elektron Model:Cycles
+ - name: Samples
+   port_name: Elektron Model:Samples
  - name: Midihub 1
    port_name: Midihub MH-0Q23ZT8:Midihub MH-0Q23ZT8 MIDI 1
 connectors:

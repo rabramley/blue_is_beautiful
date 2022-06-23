@@ -11,60 +11,64 @@ from contextlib import contextmanager
 
 
 class MidiConnector():
-    def __init__(self, in_port_name: str, in_channel: int, out_port_name: str, out_channel: int):
-        self.in_port_name = in_port_name
-        self.in_channel = in_channel
-        self.out_port_name = out_port_name
-        self.out_channel = out_channel
-        self._active = False
-    
-    def attach_to_midi(self, midi_queue: Midi, port_manager: PortManager):
-        if not self.in_port_name in port_manager.in_ports:
-            logging.warn(f"MidiConnector():attach_to_midi in port {self.in_port_name} not found.  Ignoring.")
-            return
-        if not self.out_port_name in port_manager.out_ports:
-            logging.warn(f"MidiConnector():attach_to_midi out port {self.out_port_name} not found.  Ignoring.")
-            return
-
-        in_port = port_manager.in_ports[self.in_port_name]
-        in_port.register_connection(self.in_channel, self)
-        out_port = port_manager.out_ports[self.out_port_name]
-        out_port.register_connection(self.out_channel, self)
-
+    def __init__(
+        self,
+        midi_queue: Midi,
+        in_channel: InChannel,
+        out_channel: OutChannel,
+    ):
         self._midi_queue = midi_queue
-        self.out_port_name_actual = out_port.name
+        self.in_channel = in_channel
+        self.out_channel = out_channel
 
-        self._active = True
-
+        if in_channel and out_channel:
+            in_channel.register_observer(self)
+    
     def send_message(self, message: Message):
-        if not self._active:
-            return
-
-        new_message = message.copy(channel=self.out_channel)
+        new_message = message.copy(channel=self.out_channel.channel)
         logging.info(f'MidiConnector:send_message: sending message {new_message}')
 
-        self._midi_queue.queue_message(self.out_port_name_actual, new_message)
+        self._midi_queue.queue_message(self.out_channel.port_name, new_message)
 
 
-class Port():
+class InChannel():
+    def __init__(self):
+        self._observers = []
+
+    def register_observer(self, connector: MidiConnector):
+        self._observers.append(connector)
+
+    def send_message(self, message: Message):
+        for c in self._observers:
+            c.send_message(message)
+
+
+class OutChannel():
+    def __init__(self, port_name: str, channel: int):
+        self.port_name = port_name
+        self.channel = channel
+
+
+class InPort():
     def __init__(self, port: BasePort, name: str):
         self.port = port
         self.name = name
         self.channels = []
 
         for i in range(16):
-            self.channels.append([])
+            self.channels.append(InChannel())
         
         port.callback = self.on_port_callback
 
-    def register_connection(self, channel: int, connector: MidiConnector):
-        self.channels[channel].append(connector)
-
     def on_port_callback(self, message: Message):
-        logging.info(f'MidiPort:on_port_callback: received message: {message}')
         if hasattr(message, 'channel'): # Not all messages have channels
-            for c in self.channels[message.channel]:
-                c.send_message(message)
+            self.channels[message.channel].send_message(message)
+
+
+class OutPort():
+    def __init__(self, port: BasePort, name: str):
+        self.port = port
+        self.name = name
 
 
 class PortManager():
@@ -76,14 +80,14 @@ class PortManager():
             in_port = self._find_in_port(p['port_name'])
 
             if in_port:
-                self.in_ports[p['name']] = Port(in_port, p['name'])
+                self.in_ports[p['name']] = InPort(in_port, p['name'])
             else:
                 logging.warn(f"PortManager():__init__ {p['port_name']} in port not found.  Ignoring.")
 
             out_port = self._find_out_port(p['port_name'])
 
             if out_port:
-                self.out_ports[p['name']] = Port(out_port, p['name'])
+                self.out_ports[p['name']] = OutPort(out_port, p['name'])
             else:
                 logging.warn(f"PortManager():__init__ {p['port_name']} out port not found.  Ignoring.")
 
@@ -97,33 +101,88 @@ class PortManager():
             if port_name_actual.startswith(port_name):
                 return mido.open_output(port_name_actual)
 
+    def get_in_channel(self, port_name: str, channel: int):
+        if port_name in self.in_ports:
+            return self.in_ports[port_name].channels[channel]
+
+    def get_out_channel(self, port_name: str, channel: int):
+        if port_name in self.out_ports:
+            return OutChannel(port_name, channel)
+
+class ClockWatcher():
+    def tick(self, tick):
+        pass
+
+
+class SequencerTrack(ClockWatcher, InChannel):
+    def __init__(self, clock: Clock, note: int, velocity: int, denominator: int):
+        super().__init__()
+
+        self._note = note
+        self._velocity = velocity
+        self._connectors = []
+        self._pulses_per_beat = Clock.PPQN * 4 / denominator
+
+        clock.attach_watcher(self)
+
+    def tick(self, tick):
+        if tick % self._pulses_per_beat == 0:
+            self.beat()
+    
+    def beat(self):
+        self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
+
+
+class PortClock(ClockWatcher):
+    def __init__(self, midi_queue: Midi, port_manager: PortManager, port_name: str):
+        self._midi_queue = midi_queue
+        self._port_manager = port_manager
+        self._port_name = port_name
+
+    def tick(self, tick):
+        self._midi_queue.queue_message(self._port_name, Message('clock'))
+
 
 class Clock():
     NANO_SECONDS_PER_MINUTE = 60_000_000_000
     PPQN = 24
 
     def __init__(self, bpm: int):
-        self.bpm = bpm
-        self.interval = int(Clock.NANO_SECONDS_PER_MINUTE / bpm / Clock.PPQN)
+        self._interval = int(Clock.NANO_SECONDS_PER_MINUTE / bpm / Clock.PPQN)
+        self._tick = 0
+        self._running = False
+        self._watchers = []
+        self._next = 0
     
-    def attach_to_midi(self, midi_queue: Midi, port_manager: PortManager):
-        self._midi_queue = midi_queue
-        self._port_manager = port_manager
+    def attach_watcher(self, watcher: ClockWatcher):
+        self._watchers.append(watcher)
 
     def start(self):
-        self.beat = 0
-        self.next = time.monotonic_ns() + self.interval
+        self._tick = 0
+        self._next = time.monotonic_ns() + self._interval
+        self._running = True
+
+    def stop(self):
+        self._tick = 0
+        self._running = False
+
+    def toggle(self):
+        if self._running:
+            self.stop()
+        else:
+            self.start()
 
     def tick(self):
-        if self.next < time.monotonic_ns():
-            self.beat += 1
-            self.next += self.interval
+        if not self._running:
+            return
 
-            message = Message('clock')
-        
-            for p in self._port_manager.out_ports:
-                logging.info(f'MidiConnector:send_message: sending message {message}')
-                self._midi_queue.queue_message(p, message)
+        if self._next < time.monotonic_ns():
+            self._tick += 1
+            self._next += self._interval
+
+            for w in self._watchers:
+                logging.info(f'MidiConnector:send_message: sending tick')
+                w.tick(self._tick)
 
 
 class Midi(threading.Thread):
@@ -135,11 +194,7 @@ class Midi(threading.Thread):
         self._port_manager = port_manager
         self._clocks = []
 
-    def register_connector(self, connector: MidiConnector):
-        connector.attach_to_midi(self, self._port_manager)
-
     def register_clock(self, clock: Clock):
-        clock.attach_to_midi(self, self._port_manager)
         self._clocks.append(clock)
 
     def queue_message(self, port_name: str, message: Message):
@@ -149,9 +204,6 @@ class Midi(threading.Thread):
     def run(self):
         logging.info('Midi:run: Running')
         
-        for c in self._clocks:
-            c.start()
-
         while not self._done:
             logging.info(f'Midi:run: looping')
 
