@@ -159,7 +159,7 @@ class Clock():
 
     def start(self):
         self._tick = 0
-        self._next = time.monotonic_ns() + self._interval
+        self._next = time.monotonic_ns()
         self._running = True
 
     def stop(self):

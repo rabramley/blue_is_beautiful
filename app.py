@@ -13,7 +13,11 @@ traceback.install()
 with open('config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
+with open('project.yaml') as f:
+    project = yaml.load(f, Loader=yaml.FullLoader)
+
 logging.basicConfig(level=logging.WARN)
+
 
 class Display(Widget):
     def on_mount(self):
@@ -32,14 +36,14 @@ class BlueApp(App):
         self.port_manager = PortManager(config)
         self.midi = Midi(self.port_manager)
 
-        for c in config['connectors']:
+        for c in project['connectors']:
             m = MidiConnector(
                 midi_queue = self.midi,
                 in_channel = self.port_manager.get_in_channel(c['in_port_name'], c['in_channel']),
                 out_channel = self.port_manager.get_out_channel(c['out_port_name'], c['out_channel']),
             )
 
-        self.clock = Clock(bpm=config['bpm'])
+        self.clock = Clock(bpm=project['bpm'])
         self.midi.register_clock(self.clock)
 
         MidiConnector(
