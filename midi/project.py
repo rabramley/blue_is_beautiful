@@ -11,7 +11,8 @@ class Project:
         self._sequencers = []
 
         self._clock = Clock(bpm=project_data['bpm'])
-        self._midi.register_clock(self._clock)
+        # self._midi.register_clock(self._clock)
+        self._clock.attach_watcher(midi)
 
         self._register_connectors()
         self._register_sequencers()
@@ -36,4 +37,4 @@ class Project:
         self._sequencers.append(source)
 
     def position_description(self):
-        return f'{self._clock._tick}'
+        return f'{self._clock._tick} {self._clock._running} {self._clock._interval / 1_000_000}'

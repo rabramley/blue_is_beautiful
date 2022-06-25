@@ -23,9 +23,10 @@ logging.basicConfig(level=logging.WARN)
 class Display(Widget):
     def on_mount(self):
         self.position_description = ''
+        self.log = ''
 
     def render(self):
-        return Align.center(self.position_description, vertical="middle")
+        return Align.center(f'{self.log} {self.position_description}', vertical="middle")
 
 
 class BlueApp(App):
@@ -36,7 +37,7 @@ class BlueApp(App):
         self.midi = Midi(self.port_manager)
         self.project = Project(project, self.port_manager, self.midi)
 
-        self.midi.start()
+        self.project._clock.start()
 
     async def on_mount(self):
         self._display = Display()
@@ -47,9 +48,8 @@ class BlueApp(App):
     
     async def shutdown(self):
         await super().shutdown()
-
-        self.midi.stop()
-        self.midi.join()
+        self.project._clock.stop()
+        self.project._clock.join()
 
     async def action_toggle(self):
         self.project._clock.toggle()

@@ -4,13 +4,10 @@ from mido import Message
 from mido.ports import BasePort
 import logging
 from midi.connections import MessageDestination, MessageSource
-from midi.sequencing import Clock
 import logging
-import threading
 import queue
 from mido import Message
 from multiprocessing import Queue
-from midi.sequencing import Clock
 
 
 class PortManager():
@@ -52,34 +49,21 @@ class PortManager():
             return OutChannel(port_name, channel, midi_queue)
 
 
-class Midi(threading.Thread):
+class Midi():
     def __init__(self, port_manager: PortManager):
-        super().__init__()
         self.queue = Queue()
-        self._done = False
         self._port_manager = port_manager
-        self._clocks = []
-
-    def register_clock(self, clock: Clock):
-        self._clocks.append(clock)
 
     def queue_message(self, port_name: str, message: Message):
         self.queue.put((message, port_name))
 
-    def run(self):
-        while not self._done:
-            for c in self._clocks:
-                c.tick()
-
-            try:
-                message, port_name = self.queue.get(timeout=0.01)
-                port = self._port_manager.out_ports[port_name]
-                port.port.send(message)
-            except queue.Empty:
-                pass
-
-    def stop(self):
-        self._done = True
+    def tick(self, tick):
+        try:
+            message, port_name = self.queue.get_nowait()
+            port = self._port_manager.out_ports[port_name]
+            port.port.send(message)
+        except queue.Empty:
+            pass
 
 
 class InChannel(MessageSource):
