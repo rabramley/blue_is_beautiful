@@ -3,11 +3,10 @@ from rich.align import Align
 from textual.app import App
 from textual.widget import Widget
 from textual.widgets import ScrollView
-from midi import Midi
 import logging
 import yaml
 
-from midi.connectors import PortManager
+from midi.connectors import Midi, PortManager
 from midi.project import Project
 
 traceback.install()
