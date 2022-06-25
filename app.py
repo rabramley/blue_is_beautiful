@@ -4,12 +4,11 @@ from textual.app import App
 from textual.widget import Widget
 from textual.widgets import ScrollView
 from midi import Midi
-from midi.clock import Clock
 import logging
 import yaml
 
 from midi.connectors import PortManager
-from midi.sequencing import SequencerTrack
+from midi.project import Project
 
 traceback.install()
 
@@ -38,23 +37,7 @@ class BlueApp(App):
         await self.bind("s", "toggle")
         self.port_manager = PortManager(config)
         self.midi = Midi(self.port_manager)
-
-        for c in project['connectors']:
-            source = self.port_manager.get_in_channel(c['in_port_name'], c['in_channel'])
-            if source:
-                source.register_observer(self.port_manager.get_out_channel(c['out_port_name'], c['out_channel'], self.midi))
-
-        self.clock = Clock(bpm=project['bpm'])
-        self.midi.register_clock(self.clock)
-
-        source = SequencerTrack(self.clock, 30, 100, 2)
-        source.register_observer(self.port_manager.get_out_channel('Cycles', 1, self.midi))
-
-        source = SequencerTrack(self.clock, 30, 100, 4)
-        source.register_observer(self.port_manager.get_out_channel('Cycles', 0, self.midi))
-
-        source = SequencerTrack(self.clock, 30, 100, 8)
-        source.register_observer(self.port_manager.get_out_channel('Cycles', 2, self.midi))
+        self.project = Project(project, self.port_manager, self.midi)
 
         self.midi.start()
 
@@ -72,12 +55,12 @@ class BlueApp(App):
         self.midi.join()
 
     async def action_toggle(self):
-        self.clock.toggle()
+        self.project.clock.toggle()
 
     async def tick(self):
-        self._display.interval = self.clock._interval
-        self._display.next = self.clock._next
-        self._display.tick = self.clock._tick
+        self._display.interval = self.project.clock._interval
+        self._display.next = self.project.clock._next
+        self._display.tick = self.project.clock._tick
         self._display.refresh()
 
     

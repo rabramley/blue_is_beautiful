@@ -21,5 +21,3 @@ class SequencerTrack(ClockWatcher, MessageSource):
     
     def beat(self):
         self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
-
-
