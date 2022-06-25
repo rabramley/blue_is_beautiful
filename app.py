@@ -3,10 +3,13 @@ from rich.align import Align
 from textual.app import App
 from textual.widget import Widget
 from textual.widgets import ScrollView
-from midi import Clock, Midi, MidiConnector, PortManager, SequencerTrack
-from textual.reactive import Reactive
+from midi import Midi
+from midi.clock import Clock
 import logging
 import yaml
+
+from midi.connectors import PortManager
+from midi.sequencing import SequencerTrack
 
 traceback.install()
 
@@ -37,30 +40,21 @@ class BlueApp(App):
         self.midi = Midi(self.port_manager)
 
         for c in project['connectors']:
-            m = MidiConnector(
-                midi_queue = self.midi,
-                in_channel = self.port_manager.get_in_channel(c['in_port_name'], c['in_channel']),
-                out_channel = self.port_manager.get_out_channel(c['out_port_name'], c['out_channel']),
-            )
+            source = self.port_manager.get_in_channel(c['in_port_name'], c['in_channel'])
+            if source:
+                source.register_observer(self.port_manager.get_out_channel(c['out_port_name'], c['out_channel'], self.midi))
 
         self.clock = Clock(bpm=project['bpm'])
         self.midi.register_clock(self.clock)
 
-        MidiConnector(
-            midi_queue = self.midi,
-            in_channel = SequencerTrack(self.clock, 30, 100, 2),
-            out_channel = self.port_manager.get_out_channel('Cycles', 1),
-        )
-        MidiConnector(
-            midi_queue = self.midi,
-            in_channel = SequencerTrack(self.clock, 30, 100, 4),
-            out_channel = self.port_manager.get_out_channel('Cycles', 0),
-        )
-        MidiConnector(
-            midi_queue = self.midi,
-            in_channel = SequencerTrack(self.clock, 30, 100, 8),
-            out_channel = self.port_manager.get_out_channel('Cycles', 2),
-        )
+        source = SequencerTrack(self.clock, 30, 100, 2)
+        source.register_observer(self.port_manager.get_out_channel('Cycles', 1, self.midi))
+
+        source = SequencerTrack(self.clock, 30, 100, 4)
+        source.register_observer(self.port_manager.get_out_channel('Cycles', 0, self.midi))
+
+        source = SequencerTrack(self.clock, 30, 100, 8)
+        source.register_observer(self.port_manager.get_out_channel('Cycles', 2, self.midi))
 
         self.midi.start()
 
