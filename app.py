@@ -23,12 +23,10 @@ logging.basicConfig(level=logging.WARN)
 
 class Display(Widget):
     def on_mount(self):
-        self.interval = ''
-        self.next = ''
-        self.tick = ''
+        self.position_description = ''
 
     def render(self):
-        return Align.center(f'{self.interval}: {self.next}  {self.tick}', vertical="middle")
+        return Align.center(self.position_description, vertical="middle")
 
 
 class BlueApp(App):
@@ -55,12 +53,10 @@ class BlueApp(App):
         self.midi.join()
 
     async def action_toggle(self):
-        self.project.clock.toggle()
+        self.project._clock.toggle()
 
     async def tick(self):
-        self._display.interval = self.project.clock._interval
-        self._display.next = self.project.clock._next
-        self._display.tick = self.project.clock._tick
+        self._display.position_description = self.project.position_description()
         self._display.refresh()
 
     
