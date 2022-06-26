@@ -11,7 +11,6 @@ class Project:
         self._sequencers = []
 
         self._clock = Clock(bpm=project_data['bpm'])
-        # self._midi.register_clock(self._clock)
         self._clock.attach_watcher(midi)
 
         self._register_connectors()
@@ -24,17 +23,10 @@ class Project:
                 source.register_observer(self._port_manager.get_out_channel(c['out_port_name'], c['out_channel'], self._midi))
     
     def _register_sequencers(self):
-        source = SequencerTrack(self._clock, 30, 100, 2)
-        source.register_observer(self._port_manager.get_out_channel('Cycles', 1, self._midi))
-        self._sequencers.append(source)
-
-        source = SequencerTrack(self._clock, 30, 100, 4)
-        source.register_observer(self._port_manager.get_out_channel('Cycles', 0, self._midi))
-        self._sequencers.append(source)
-
-        source = SequencerTrack(self._clock, 30, 100, 8)
-        source.register_observer(self._port_manager.get_out_channel('Cycles', 2, self._midi))
-        self._sequencers.append(source)
+        for s in self._project_data['sequence_tracks']:
+            source = SequencerTrack(self._clock, s['note'], s['velocity'], s['denominator'], s['pattern'])
+            source.register_observer(self._port_manager.get_out_channel(s['port'], s['channel'], self._midi))
+            self._sequencers.append(source)
 
     def position_description(self):
         return f'{self._clock._tick} {self._clock._running} {self._clock._interval / 1_000_000}'

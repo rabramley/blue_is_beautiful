@@ -7,6 +7,9 @@ class ClockWatcher():
     def tick(self, tick):
         pass
 
+    def restart(self):
+        pass
+
 
 class Clock(threading.Thread):
     NANO_SECONDS_PER_MINUTE = 60_000_000_000
@@ -26,6 +29,9 @@ class Clock(threading.Thread):
         self._watchers.append(watcher)
 
     def commence(self):
+        for w in self._watchers:
+            w.restart()
+
         self._tick = 0
         self._next = time.monotonic_ns()
         self._running = True

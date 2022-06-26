@@ -3,6 +3,7 @@ import mido
 from mido import Message 
 from mido.ports import BasePort
 import logging
+from midi.clock import ClockWatcher
 from midi.connections import MessageDestination, MessageSource
 import logging
 import queue
@@ -18,15 +19,16 @@ class PortManager():
         for p in config['ports']:
             in_port = self._find_in_port(p['port_name'])
 
+            name = p['name'].lower()
             if in_port:
-                self.in_ports[p['name']] = InPort(in_port, p['name'])
+                self.in_ports[name] = InPort(in_port, name)
             else:
                 logging.warn(f"PortManager():__init__ {p['port_name']} in port not found.  Ignoring.")
 
             out_port = self._find_out_port(p['port_name'])
 
             if out_port:
-                self.out_ports[p['name']] = OutPort(out_port, p['name'])
+                self.out_ports[name] = OutPort(out_port, name)
             else:
                 logging.warn(f"PortManager():__init__ {p['port_name']} out port not found.  Ignoring.")
 
@@ -41,15 +43,15 @@ class PortManager():
                 return mido.open_output(port_name_actual)
 
     def get_in_channel(self, port_name: str, channel: int):
-        if port_name in self.in_ports:
-            return self.in_ports[port_name].channels[channel]
+        if port_name.lower() in self.in_ports:
+            return self.in_ports[port_name.lower()].channels[channel]
 
     def get_out_channel(self, port_name: str, channel: int, midi_queue: Midi):
-        if port_name in self.out_ports:
-            return OutChannel(port_name, channel, midi_queue)
+        if port_name.lower() in self.out_ports:
+            return OutChannel(port_name.lower(), channel, midi_queue)
 
 
-class Midi():
+class Midi(ClockWatcher):
     def __init__(self, port_manager: PortManager):
         self.queue = Queue()
         self._port_manager = port_manager
@@ -58,12 +60,20 @@ class Midi():
         self.queue.put((message, port_name))
 
     def tick(self, tick):
-        try:
-            message, port_name = self.queue.get_nowait()
-            port = self._port_manager.out_ports[port_name]
-            port.port.send(message)
-        except queue.Empty:
-            pass
+        while True:
+            try:
+                message, port_name = self.queue.get_nowait()
+                port = self._port_manager.out_ports[port_name]
+                port.port.send(message)
+            except queue.Empty:
+                break
+
+    def restart(self):
+        while True:
+            try:
+                message, port_name = self.queue.get_nowait()
+            except queue.Empty:
+                break
 
 
 class InChannel(MessageSource):
