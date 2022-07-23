@@ -60,6 +60,7 @@ class Midi(ClockWatcher):
         self.queue.put((message, port_name))
 
     def tick(self, tick):
+        logging.debug('MIDI ticking')
         while True:
             try:
                 message, port_name = self.queue.get_nowait()
@@ -87,6 +88,7 @@ class OutChannel(MessageDestination):
         self._midi_queue = midi_queue
 
     def receive_message(self, message: Message):
+        logging.debug(f'Sending message to {self.port_name} on channel {self.channel}')
         new_message = message.copy(channel=self.channel)
         self._midi_queue.queue_message(self.port_name, new_message)
 
@@ -104,6 +106,7 @@ class InPort():
 
     def on_port_callback(self, message: Message):
         if hasattr(message, 'channel'): # Not all messages have channels
+            logging.debug(f'Received message from {self.name} on channel {message.channel}')
             self.channels[message.channel].send_message(message)
 
 

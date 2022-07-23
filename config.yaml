@@ -71,3 +71,5 @@ ports:
    port_name: Elektron Model:Samples
  - name: Midihub 1
    port_name: Midihub MH-0Q23ZT8:Midihub MH-0Q23ZT8 MIDI 1
+ - name: microKorg
+   port_name: microKORG XL:microKORG XL microKORG XL _ SOU

@@ -1,5 +1,13 @@
 # blue_is_beautiful
 
+## Tools
+
+### Get Ports
+
+```
+aseqdump -l
+```
+
 ## Feature suggestions:
 
 - Sequencer

@@ -12,6 +12,10 @@ connectors:
    in_channel: 1
    out_port_name: Cycles
    out_channel: 1
+ - in_port_name: keystep
+   in_channel: 2
+   out_port_name: microKorg
+   out_channel: 0
 sequence_tracks:
   - name: 'Snare'
     note: 30

@@ -23,7 +23,7 @@ class SequencerTrack(ClockWatcher, MessageSource):
             self.beat()
     
     def beat(self):
-        if next(self._pattern) == 'x':
+        if next(self._pattern) != '.':
             self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
 
     def restart(self):

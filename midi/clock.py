@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 import threading
 import time
 
@@ -49,6 +50,8 @@ class Clock(threading.Thread):
     def tick(self):
         if not self._running:
             return
+
+        logging.debug('Clock ticking')
 
         if self._next < time.monotonic_ns():
             for w in self._watchers:

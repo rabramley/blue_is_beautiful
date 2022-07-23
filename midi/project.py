@@ -1,3 +1,4 @@
+import logging
 from midi.clock import Clock
 from midi.sequencing import SequencerTrack
 
@@ -20,6 +21,7 @@ class Project:
         for c in self._project_data['connectors']:
             source = self._port_manager.get_in_channel(c['in_port_name'], c['in_channel'])
             if source:
+                logging.info(f"Registering connection: {c['in_port_name']}:{c['in_channel']}  -> {c['out_port_name']}:{c['out_channel']}")
                 source.register_observer(self._port_manager.get_out_channel(c['out_port_name'], c['out_channel'], self._midi))
     
     def _register_sequencers(self):
