@@ -37,6 +37,7 @@ class BlueApp(App):
         self.midi = Midi(self.port_manager)
         self.project = Project(project, self.port_manager, self.midi)
 
+        self.midi.start()
         self.project._clock.start()
 
     async def on_mount(self):
@@ -50,6 +51,8 @@ class BlueApp(App):
         await super().shutdown()
         self.project._clock.stop()
         self.project._clock.join()
+        self.midi.stop()
+        self.midi.join()
 
     async def action_toggle(self):
         self.project._clock.toggle()

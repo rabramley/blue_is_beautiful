@@ -12,7 +12,6 @@ class Project:
         self._sequencers = []
 
         self._clock = Clock(bpm=project_data['bpm'])
-        self._clock.attach_watcher(midi)
 
         self._register_connectors()
         self._register_sequencers()

@@ -1,9 +1,10 @@
 from __future__ import annotations
+import threading
+import time
 import mido
 from mido import Message 
 from mido.ports import BasePort
 import logging
-from midi.clock import ClockWatcher
 from midi.connections import MessageDestination, MessageSource
 import logging
 import queue
@@ -51,15 +52,18 @@ class PortManager():
             return OutChannel(port_name.lower(), channel, midi_queue)
 
 
-class Midi(ClockWatcher):
+class Midi(threading.Thread):
     def __init__(self, port_manager: PortManager):
+        super().__init__()
+
         self.queue = Queue()
         self._port_manager = port_manager
+        self._done = False
 
     def queue_message(self, port_name: str, message: Message):
         self.queue.put((message, port_name))
 
-    def tick(self, tick):
+    def tick(self):
         logging.debug('MIDI ticking')
         while True:
             try:
@@ -69,12 +73,13 @@ class Midi(ClockWatcher):
             except queue.Empty:
                 break
 
-    def restart(self):
-        while True:
-            try:
-                message, port_name = self.queue.get_nowait()
-            except queue.Empty:
-                break
+    def run(self):
+        while not self._done:
+            self.tick()
+            time.sleep(0.0000001)
+
+    def stop(self):
+        self._done = True
 
 
 class InChannel(MessageSource):
