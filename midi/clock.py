@@ -67,5 +67,3 @@ class Clock(threading.Thread):
 
     def stop(self):
         self._done = True
-
-

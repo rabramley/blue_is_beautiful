@@ -1,4 +1,6 @@
 bpm: 120
+clock:
+ - out_port_name: microKorg
 connectors:
  - in_port_name: nanoKontrol
    in_channel: 0

@@ -22,6 +22,7 @@ project = Project(project, port_manager, midi)
 
 midi.start()
 project._clock.start()
+project._clock.toggle()
 
 input("Press Enter to continue...")
 
