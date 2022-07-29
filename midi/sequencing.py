@@ -1,11 +1,13 @@
 from __future__ import annotations
-import logging
+from dataclasses import dataclass
 from mido import Message
 from midi.clock import Clock, ClockWatcher
 from midi.connections import MessageSource
 from itertools import cycle
 from midi.connectors import Midi
 import random
+import logging
+from sortedcontainers import SortedList
 
 
 class MidiClockSender(ClockWatcher):
@@ -26,132 +28,53 @@ class MidiClockSender(ClockWatcher):
         self._midi_queue.queue_message(self.port_name, Message('reset'))
 
 
-class GatePattern(ClockWatcher, MessageSource):
-    def __init__(self, clock: Clock, denominator: int, pattern: str):
-        super().__init__()
-
-        self._pulses_per_beat = Clock.PPQN * 4 / denominator
-        self._original_pattern = pattern
-
-        self.restart()
-        clock.attach_watcher(self)
-
-    def tick(self, tick):
-        if tick % self._pulses_per_beat == 0:
-            self.beat()
-    
-    def beat(self):
-        if next(self._pattern) != '.':
-            self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
-
-    def restart(self):
-        self._pattern = cycle(self._original_pattern)
+@dataclass
+class Note():
+    note: int
+    velocity: int
+    tick_off: int
 
 
 class NoteSource():
     def __init__(self, denominator: int, pattern: str):
-        super().__init__()
-
         self._pulses_per_beat = Clock.PPQN * 4 / denominator
-        self._original_pattern = pattern
+        self._gate_length = self._pulses_per_beat
+        self._pattern = pattern
+        self._denominator = denominator
 
-        self.restart()
-    def tick(self, tick):
-        if tick % self._pulses_per_beat == 0:
-            self.beat()
-    
-    def beat(self):
-        if next(self._pattern) != '.':
-            self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
+    def get_notes(self, tick):
+        if tick % self._pulses_per_beat > 0:
+            return []
 
-    def restart(self):
-        self._pattern = cycle(self._original_pattern)
+        beat = int((tick // self._pulses_per_beat) % self._denominator)
 
+        result = []
 
-# class SequencerTrack(ClockWatcher, MessageSource):
-#     def __init__(self, clock: Clock, note: int, velocity: int, denominator: int, pattern: str):
-#         super().__init__()
-
-#         self._note = note
-#         self._velocity = velocity
-#         self._pulses_per_beat = Clock.PPQN * 4 / denominator
-#         self._original_pattern = pattern
-
-#         self.restart()
-#         clock.attach_watcher(self)
-
-#     def tick(self, tick):
-#         if tick % self._pulses_per_beat == 0:
-#             self.beat()
-    
-#     def beat(self):
-#         if next(self._pattern) != '.':
-#             self.send_message(Message('note_on', channel=0, note=self._note, velocity=self._velocity, time=0))
-
-#     def restart(self):
-#         self._pattern = cycle(self._original_pattern)
-
-
-class NoteSourceFixed():
-    def __init__(self, note: int):
-        self._note = note
-
-    def get_note(self, beat):
-        return self._note
-
-    def restart(self):
-        pass
-
-
-class NoteSourceRandom():
-    def __init__(self, note: int):
-        self._note = note
-
-    def get_note(self, beat):
-        return random.randint(0, 127)
-
-    def restart(self):
-        pass
-
-
-class GateSource():
-    def __init__(self, pattern: str):
-        self._original_pattern = pattern
-
-    def is_gateon(self, beat):
-        return self._original_pattern[beat] == 'x'
-
-    def restart(self):
-        pass
+        if self._pattern[beat] =='x':
+            note = (random.randint(35, 39) * 2)
+            result.append(Note(note=note, velocity=100, tick_off=int(tick + self._gate_length * 3)))
+        
+        return result
 
 
 class SequencerTrack(ClockWatcher, MessageSource):
-    def __init__(self, clock: Clock, note: int, velocity: int, denominator: int, pattern: str):
+    def __init__(self, clock: Clock, source: NoteSource):
         super().__init__()
 
-        self._velocity = velocity
-        self._pulses_per_beat = Clock.PPQN * 4 / denominator
-        self._denominator = denominator
+        self._note_source = source
+        self._notes_off = SortedList(key=lambda n: n.tick_off)
 
-        self._gate_source = GateSource(pattern)
-        self._note_source = NoteSourceFixed(note)
-
-        self.restart()
         clock.attach_watcher(self)
 
     def tick(self, tick):
-        if tick % self._pulses_per_beat == 0:
-            self.beat(int((tick // self._pulses_per_beat) % self._denominator))
-    
-    def beat(self, beat):
-        if self._gate_source.is_gateon(beat):
-            self.send_message(Message(
-                'note_on',
-                channel=0,
-                note=self._note_source.get_note(beat),
-                velocity=self._velocity,
-                time=0,
-            ))
+        split_point = self._notes_off.bisect_right(Note(note=0, velocity=0, tick_off=tick))
+
+        for o in (self._notes_off.pop(index=0) for _ in range(split_point)):
+            self.send_message(Message('note_off', channel=0, note=o.note, velocity=o.velocity, time=0))
+
+        for n in self._note_source.get_notes(tick):
+            self.send_message(Message('note_on', channel=0, note=n.note, velocity=n.velocity, time=0))
+            self._notes_off.add(n)
 
     def restart(self):
-        self._gate_source.restart()
+        pass

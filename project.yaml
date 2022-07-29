@@ -20,12 +20,10 @@ connectors:
    out_channel: 0
 sequence_tracks:
   - name: 'Snare'
-    note: 30
-    velocity: 100
-    denominator: 4
+    denominator: 8
     port: 'microKorg'
     channel: 0
-    pattern: 'xxxx'
+    pattern: 'xxxxx.x.'
   # - name: 'Kick'
   #   note: 30
   #   velocity: 100

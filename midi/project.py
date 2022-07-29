@@ -1,6 +1,6 @@
 import logging
 from midi.clock import Clock
-from midi.sequencing import MidiClockSender, SequencerTrack
+from midi.sequencing import MidiClockSender, NoteSource, SequencerTrack
 
 
 class Project:
@@ -26,7 +26,7 @@ class Project:
     
     def _register_sequencers(self):
         for s in self._project_data['sequence_tracks']:
-            source = SequencerTrack(self._clock, s['note'], s['velocity'], s['denominator'], s['pattern'])
+            source = SequencerTrack(self._clock, NoteSource(s['denominator'], s['pattern']))
             source.register_observer(self._port_manager.get_out_channel(s['port'], s['channel'], self._midi))
             self._sequencers.append(source)
 
