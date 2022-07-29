@@ -23,20 +23,20 @@ sequence_tracks:
     note: 30
     velocity: 100
     denominator: 4
-    port: 'Cycles'
-    channel: 1
-    pattern: '.x.x'
-  - name: 'Kick'
-    note: 30
-    velocity: 100
-    denominator: 4
-    port: 'Cycles'
+    port: 'microKorg'
     channel: 0
-    pattern: 'x.x.'
-  - name: 'closed hat'
-    note: 30
-    velocity: 100
-    denominator: 16
-    port: 'Cycles'
-    channel: 2
-    pattern: 'x.x.x.x.x.x.x.x.x.x.x.x.x.xxx.x.'
+    pattern: 'xxxx'
+  # - name: 'Kick'
+  #   note: 30
+  #   velocity: 100
+  #   denominator: 4
+  #   port: 'Cycles'
+  #   channel: 0
+  #   pattern: 'x.x.'
+  # - name: 'closed hat'
+  #   note: 30
+  #   velocity: 100
+  #   denominator: 16
+  #   port: 'Cycles'
+  #   channel: 2
+  #   pattern: 'x.x.x.x.x.x.x.x.x.x.x.x.x.xxx.x.'

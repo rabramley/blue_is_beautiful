@@ -8,7 +8,6 @@ import logging
 from midi.connections import MessageDestination, MessageSource
 import logging
 import queue
-from mido import Message
 from multiprocessing import Queue
 
 
@@ -79,6 +78,10 @@ class Midi(threading.Thread):
             time.sleep(0.0000001)
 
     def stop(self):
+        logging.warn('Stoppings......')
+        for name, op in self._port_manager.out_ports.items():
+            op.port.reset()
+
         self._done = True
 
 
