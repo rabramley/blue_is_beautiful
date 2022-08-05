@@ -43,9 +43,9 @@ class NoteSource():
 
 
 class RandomNoteSource(NoteSource):
-    def __init__(self, scale: Scale, denominator: int, pattern: str):
+    def __init__(self, scale: Scale, denominator: int, gate_length: int, pattern: str):
         self._pulses_per_beat = Clock.PPQN * 4 / denominator
-        self._gate_length = self._pulses_per_beat
+        self._gate_length = self._pulses_per_beat * gate_length
         self._pattern = pattern
         self._denominator = denominator
         self._scale = scale
@@ -61,7 +61,7 @@ class RandomNoteSource(NoteSource):
 
         if self._pattern[beat] =='x':
             note = random.choice(self._notes)
-            result.append(Note(note=note, velocity=100, tick_off=int(tick + self._gate_length * 3)))
+            result.append(Note(note=note, velocity=100, tick_off=int(tick + self._gate_length)))
         
         return result
 

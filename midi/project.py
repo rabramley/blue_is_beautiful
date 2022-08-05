@@ -27,7 +27,7 @@ class Project:
     
     def _register_sequencers(self):
         for s in self._project_data['sequence_tracks']:
-            source = NoteDespatcher(self._clock, RandomNoteSource(Scale(s['key'], s['scale'], s['lowest_octave'], s['highest_octave']), s['denominator'], s['pattern']))
+            source = NoteDespatcher(self._clock, RandomNoteSource(Scale(s['key'], s['scale'], s['lowest_octave'], s['highest_octave']), s['denominator'], s['gate_length'], s['pattern']))
             source.register_observer(self._port_manager.get_out_channel(s['port'], s['channel'], self._midi))
             self._sequencers.append(source)
 

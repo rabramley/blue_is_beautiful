@@ -25,9 +25,30 @@ sequence_tracks:
     channel: 0
     pattern: 'xxxxx.x.'
     key: C#
-    scale: phrygian
-    lowest_octave: 3
+    scale: dorian
+    lowest_octave: 4
     highest_octave: 4
+    gate_length: 2
+  - name: 'base'
+    denominator: 2
+    port: 'microKorg'
+    channel: 0
+    pattern: 'xx'
+    key: C#
+    scale: dorian
+    lowest_octave: 1
+    highest_octave: 1
+    gate_length: 1
+  - name: 'top'
+    denominator: 2
+    port: 'microKorg'
+    channel: 0
+    pattern: 'xx'
+    key: C#
+    scale: dorian
+    lowest_octave: 5
+    highest_octave: 5
+    gate_length: 1
 
   # - name: 'Kick'
   #   note: 30
