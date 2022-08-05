@@ -1,4 +1,4 @@
-bpm: 120
+bpm: 40
 clock:
  - out_port_name: microKorg
 connectors:
@@ -19,11 +19,16 @@ connectors:
    out_port_name: microKorg
    out_channel: 0
 sequence_tracks:
-  - name: 'Snare'
+  - name: 'pad'
     denominator: 8
     port: 'microKorg'
     channel: 0
     pattern: 'xxxxx.x.'
+    key: C#
+    scale: phrygian
+    lowest_octave: 3
+    highest_octave: 4
+
   # - name: 'Kick'
   #   note: 30
   #   velocity: 100

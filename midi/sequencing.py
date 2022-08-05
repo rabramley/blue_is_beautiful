@@ -9,6 +9,8 @@ import random
 import logging
 from sortedcontainers import SortedList
 
+from midi.scales import Scale
+
 
 class MidiClockSender(ClockWatcher):
     def __init__(self, port_name: str, midi_queue: Midi, clock: Clock):
@@ -36,11 +38,18 @@ class Note():
 
 
 class NoteSource():
-    def __init__(self, denominator: int, pattern: str):
+    def get_notes(self, tick):
+        pass
+
+
+class RandomNoteSource(NoteSource):
+    def __init__(self, scale: Scale, denominator: int, pattern: str):
         self._pulses_per_beat = Clock.PPQN * 4 / denominator
         self._gate_length = self._pulses_per_beat
         self._pattern = pattern
         self._denominator = denominator
+        self._scale = scale
+        self._notes = scale.get_notes()
 
     def get_notes(self, tick):
         if tick % self._pulses_per_beat > 0:
@@ -51,13 +60,13 @@ class NoteSource():
         result = []
 
         if self._pattern[beat] =='x':
-            note = (random.randint(35, 39) * 2)
+            note = random.choice(self._notes)
             result.append(Note(note=note, velocity=100, tick_off=int(tick + self._gate_length * 3)))
         
         return result
 
 
-class SequencerTrack(ClockWatcher, MessageSource):
+class NoteDespatcher(ClockWatcher, MessageSource):
     def __init__(self, clock: Clock, source: NoteSource):
         super().__init__()
 
