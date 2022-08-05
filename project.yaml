@@ -1,4 +1,4 @@
-bpm: 40
+bpm: 20
 clock:
  - out_port_name: microKorg
 connectors:
