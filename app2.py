@@ -17,6 +17,8 @@ logging.basicConfig(level=logging.WARN)
 
 
 port_manager = PortManager(config)
+port_manager.debug_ports()
+
 midi = Midi(port_manager)
 project = Project(project, port_manager, midi)
 

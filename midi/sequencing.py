@@ -3,10 +3,8 @@ from dataclasses import dataclass
 from mido import Message
 from midi.clock import Clock, ClockWatcher
 from midi.connections import MessageSource
-from itertools import cycle
 from midi.connectors import Midi
 import random
-import logging
 from sortedcontainers import SortedList
 
 from midi.scales import Scale

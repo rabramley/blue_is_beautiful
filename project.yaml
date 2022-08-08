@@ -1,6 +1,6 @@
-bpm: 20
+bpm: 40
 clock:
- - out_port_name: microKorg
+ - out_port_name: Cycles
 connectors:
  - in_port_name: nanoKontrol
    in_channel: 0
@@ -16,33 +16,33 @@ connectors:
    out_channel: 1
  - in_port_name: keystep
    in_channel: 2
-   out_port_name: microKorg
+   out_port_name: Cycles
    out_channel: 0
 sequence_tracks:
   - name: 'pad'
     denominator: 8
-    port: 'microKorg'
+    port: 'Cycles'
     channel: 0
-    pattern: 'xxxxx.x.'
+    pattern: 'xxxxx...'
     key: C#
     scale: dorian
     lowest_octave: 4
     highest_octave: 4
     gate_length: 2
   - name: 'base'
-    denominator: 2
-    port: 'microKorg'
-    channel: 0
-    pattern: 'xx'
+    denominator: 8
+    port: 'Cycles'
+    channel: 1
+    pattern: 'x..x.xxx'
     key: C#
     scale: dorian
-    lowest_octave: 1
-    highest_octave: 1
+    lowest_octave: 4
+    highest_octave: 4
     gate_length: 1
   - name: 'top'
     denominator: 2
-    port: 'microKorg'
-    channel: 0
+    port: 'Cycles'
+    channel: 2
     pattern: 'xx'
     key: C#
     scale: dorian

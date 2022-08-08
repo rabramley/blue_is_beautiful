@@ -50,6 +50,9 @@ class PortManager():
         if port_name.lower() in self.out_ports:
             return OutChannel(port_name.lower(), channel, midi_queue)
 
+    def debug_ports(self):
+        for port_name_actual in mido.get_output_names():
+            logging.warn(port_name_actual)
 
 class Midi(threading.Thread):
     def __init__(self, port_manager: PortManager):
