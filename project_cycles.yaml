@@ -1,10 +1,27 @@
 bpm: 40
 clock:
- - out_port_name: fluid
+ - out_port_name: Cycles
+connectors:
+ - in_port_name: nanoKontrol
+   in_channel: 0
+   out_port_name: Midihub 1
+   out_channel: 1
+ - in_port_name: keystep
+   in_channel: 0
+   out_port_name: Cycles
+   out_channel: 0
+ - in_port_name: keystep
+   in_channel: 1
+   out_port_name: Cycles
+   out_channel: 1
+ - in_port_name: keystep
+   in_channel: 2
+   out_port_name: Cycles
+   out_channel: 0
 sequence_tracks:
   - name: 'pad'
     denominator: 8
-    port: 'fluid'
+    port: 'Cycles'
     channel: 0
     pattern: 'xxxxx...'
     key: C#
@@ -14,7 +31,7 @@ sequence_tracks:
     gate_length: 2
   - name: 'base'
     denominator: 8
-    port: 'fluid'
+    port: 'Cycles'
     channel: 1
     pattern: 'x..x.xxx'
     key: C#
@@ -24,7 +41,7 @@ sequence_tracks:
     gate_length: 1
   - name: 'top'
     denominator: 2
-    port: 'fluid'
+    port: 'Cycles'
     channel: 2
     pattern: 'xx'
     key: C#

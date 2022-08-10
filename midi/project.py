@@ -19,6 +19,9 @@ class Project:
         self._register_clocks()
     
     def _register_connectors(self):
+        if 'connectors' not in self._project_data:
+            return
+
         for c in self._project_data['connectors']:
             source = self._port_manager.get_in_channel(c['in_port_name'], c['in_channel'])
             if source:

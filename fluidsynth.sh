@@ -9,28 +9,4 @@ fi
 
 sleep 3
 
-mini=$(aconnect -o | grep "MINILAB")
-mpk=$(aconnect -o | grep "MPKmini2")
-mio=$(aconnect -o | grep "mio")
-
-if [[ $mini ]]
-then
-aconnect 'Arturia MINILAB':0 'fluid':0
-echo MINIlab connected
-elif [[ $mpk ]]
-then
-aconnect 'MPKmini2':0 'fluid':0
-echo MPKmini connected
-elif [[ $mio ]]
-then
-aconnect 'mio':0 'fluid':0
-echo Mio connected
-else
-echo No known midi devices available. Try aconnect -l
-fi
-
-cd fluidweb
-node index.js
-cd ..
-
 exit
