@@ -1,6 +1,7 @@
 bpm: 40
 clock:
  - out_port_name: Samples
+ - out_port_name: T1
 sequence_tracks:
   - name: 'pad'
     denominator: 8
