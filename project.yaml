@@ -1,10 +1,10 @@
 bpm: 40
 clock:
- - out_port_name: fluid
+ - out_port_name: Samples
 sequence_tracks:
   - name: 'pad'
     denominator: 8
-    port: 'fluid'
+    port: 'Samples'
     channel: 0
     pattern: 'xxxxx...'
     key: C#
@@ -14,7 +14,7 @@ sequence_tracks:
     gate_length: 2
   - name: 'base'
     denominator: 8
-    port: 'fluid'
+    port: 'Samples'
     channel: 1
     pattern: 'x..x.xxx'
     key: C#
@@ -24,7 +24,7 @@ sequence_tracks:
     gate_length: 1
   - name: 'top'
     denominator: 2
-    port: 'fluid'
+    port: 'Samples'
     channel: 2
     pattern: 'xx'
     key: C#
@@ -32,18 +32,3 @@ sequence_tracks:
     lowest_octave: 5
     highest_octave: 5
     gate_length: 1
-
-  # - name: 'Kick'
-  #   note: 30
-  #   velocity: 100
-  #   denominator: 4
-  #   port: 'Cycles'
-  #   channel: 0
-  #   pattern: 'x.x.'
-  # - name: 'closed hat'
-  #   note: 30
-  #   velocity: 100
-  #   denominator: 16
-  #   port: 'Cycles'
-  #   channel: 2
-  #   pattern: 'x.x.x.x.x.x.x.x.x.x.x.x.x.xxx.x.'

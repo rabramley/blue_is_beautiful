@@ -4,6 +4,7 @@ import yaml
 
 from midi.connectors import Midi, PortManager
 from midi.project import Project
+from time import sleep
 
 traceback.install()
 
@@ -30,5 +31,8 @@ input("Press Enter to continue...")
 
 project._clock.stop()
 project._clock.join()
+
+sleep(1)
+
 midi.stop()
 midi.join()

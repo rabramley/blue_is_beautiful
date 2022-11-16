@@ -27,6 +27,12 @@ class MidiClockSender(ClockWatcher):
     def restart(self):
         self._midi_queue.queue_message(self.port_name, Message('reset'))
 
+    def start(self):
+        self._midi_queue.queue_message(self.port_name, Message('start'))
+
+    def stop(self):
+        self._midi_queue.queue_message(self.port_name, Message('stop'))
+
 
 @dataclass
 class Note():

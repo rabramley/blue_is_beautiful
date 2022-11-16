@@ -11,6 +11,11 @@ class ClockWatcher():
     def restart(self):
         pass
 
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
 
 class Clock(threading.Thread):
     NANO_SECONDS_PER_MINUTE = 60_000_000_000
@@ -37,9 +42,15 @@ class Clock(threading.Thread):
         self._next = time.monotonic_ns()
         self._running = True
 
+        for w in self._watchers:
+            w.start()
+
     def cease(self):
         self._tick = 0
         self._running = False
+
+        for w in self._watchers:
+            w.stop()
 
     def toggle(self):
         if self._running:
@@ -67,3 +78,6 @@ class Clock(threading.Thread):
 
     def stop(self):
         self._done = True
+
+        for w in self._watchers:
+            w.stop()
