@@ -3,6 +3,9 @@ import logging
 import threading
 import time
 
+from midi.connectors import Midi
+from mido import Message
+
 
 class ClockWatcher():
     def tick(self, tick):
@@ -81,3 +84,29 @@ class Clock(threading.Thread):
 
         for w in self._watchers:
             w.stop()
+
+
+class MidiClockSender(ClockWatcher):
+    def __init__(self, port_name: str, midi_queue: Midi, clock: Clock):
+        self.port_name = port_name
+        self._midi_queue = midi_queue
+        clock.attach_watcher(self)
+        self._pulses_per_16th = Clock.PPQN / 4
+
+    def tick(self, tick):
+
+        if tick % self._pulses_per_16th == 0:
+            self._midi_queue.queue_message(self.port_name, Message('songpos', pos=int(tick // self._pulses_per_16th)))
+
+        self._midi_queue.queue_message(self.port_name, Message('clock'))
+
+    def restart(self):
+        self._midi_queue.queue_message(self.port_name, Message('reset'))
+
+    def start(self):
+        self._midi_queue.queue_message(self.port_name, Message('start'))
+
+    def stop(self):
+        self._midi_queue.queue_message(self.port_name, Message('stop'))
+
+

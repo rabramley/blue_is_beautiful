@@ -54,6 +54,7 @@ class PortManager():
         for port_name_actual in mido.get_output_names():
             logging.warn(port_name_actual)
 
+
 class Midi(threading.Thread):
     def __init__(self, port_manager: PortManager):
         super().__init__()

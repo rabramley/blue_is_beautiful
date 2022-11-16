@@ -1,4 +1,4 @@
-bpm: 40
+bpm: 120
 clock:
  - out_port_name: Samples
  - out_port_name: T1

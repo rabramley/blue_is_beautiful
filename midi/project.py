@@ -1,7 +1,8 @@
 import logging
 from midi.clock import Clock
 from midi.scales import Scale
-from midi.sequencing import MidiClockSender, NoteDespatcher, RandomNoteSource
+from midi.sequencing import NoteDespatcher, RandomNoteSource
+from midi.clock import MidiClockSender
 
 
 class Project:
