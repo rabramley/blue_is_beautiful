@@ -9,6 +9,22 @@ from sortedcontainers import SortedList
 from midi.scales import Scale
 
 
+def get_sequencer(clock, config):
+ return NoteDespatcher(
+    clock,
+    RandomNoteSource(
+        Scale(
+            config['key'],
+            config['scale'],
+            config['lowest_octave'],
+            config['highest_octave'],
+        ),
+        config['denominator'],
+        config['gate_length'],
+        config['pattern'],
+        )
+    )
+
 @dataclass
 class Note():
     note: int
