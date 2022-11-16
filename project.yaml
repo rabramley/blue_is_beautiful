@@ -4,32 +4,16 @@ clock:
  - out_port_name: T1
 sequence_tracks:
   - name: 'pad'
-    denominator: 8
+    type: random
+    note_provider:
+      type: scale
+      key: C#
+      mode: dorian
+      lowest_octave: 4
+      highest_octave: 4
+    timing:
+      denominator: 8
+      gate_length: 2
+      pattern: 'xxxxx...'
     port: 'Samples'
     channel: 0
-    pattern: 'xxxxx...'
-    key: C#
-    scale: dorian
-    lowest_octave: 4
-    highest_octave: 4
-    gate_length: 2
-  - name: 'base'
-    denominator: 8
-    port: 'Samples'
-    channel: 1
-    pattern: 'x..x.xxx'
-    key: C#
-    scale: dorian
-    lowest_octave: 4
-    highest_octave: 4
-    gate_length: 1
-  - name: 'top'
-    denominator: 2
-    port: 'Samples'
-    channel: 2
-    pattern: 'xx'
-    key: C#
-    scale: dorian
-    lowest_octave: 5
-    highest_octave: 5
-    gate_length: 1

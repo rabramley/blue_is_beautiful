@@ -13,17 +13,20 @@ def get_sequencer(clock, config):
  return NoteDespatcher(
     clock,
     RandomNoteSource(
-        Scale(
-            config['key'],
-            config['scale'],
-            config['lowest_octave'],
-            config['highest_octave'],
-        ),
-        config['denominator'],
-        config['gate_length'],
-        config['pattern'],
+        _get_note_provider(config['note_provider']),
+        config['timing']['denominator'],
+        config['timing']['gate_length'],
+        config['timing']['pattern'],
         )
     )
+
+def _get_note_provider(config):
+    return Scale(
+            config['key'],
+            config['mode'],
+            config['lowest_octave'],
+            config['highest_octave'],
+        )
 
 @dataclass
 class Note():
