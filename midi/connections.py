@@ -1,5 +1,6 @@
 from mido import Message
 
+
 class MessageDestination():
     def receive_message(self, message: Message):
         pass

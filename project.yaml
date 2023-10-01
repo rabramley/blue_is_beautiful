@@ -1,7 +1,7 @@
 bpm: 120
 clock:
- - out_port_name: Samples
- - out_port_name: T1
+ - out_port_name: UX16
+ - out_port_name: WIDI Jack
 sequence_tracks:
   - name: 'pad'
     type: random
@@ -15,5 +15,5 @@ sequence_tracks:
       denominator: 8
       gate_length: 2
       pattern: 'xxxxx...'
-    port: 'Samples'
+    port: WIDI Jack
     channel: 0

@@ -75,3 +75,7 @@ ports:
    port_name: microKORG XL:microKORG XL microKORG XL _ SOU
  - name: T1
    port_name: T-1
+ - name: WIDI Jack
+   port_name: WIDI Jack
+ - name: UX16
+   port_name: UX16

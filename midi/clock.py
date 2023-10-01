@@ -20,6 +20,7 @@ class ClockWatcher():
     def stop(self):
         pass
 
+
 class Clock(threading.Thread):
     NANO_SECONDS_PER_MINUTE = 60_000_000_000
     PPQN = 24
@@ -108,5 +109,3 @@ class MidiClockSender(ClockWatcher):
 
     def stop(self):
         self._midi_queue.queue_message(self.port_name, Message('stop'))
-
-

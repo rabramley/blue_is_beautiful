@@ -22,11 +22,12 @@ def get_sequencer(clock, config):
 
 def _get_note_provider(config):
     return Scale(
-            config['key'],
-            config['mode'],
-            config['lowest_octave'],
-            config['highest_octave'],
-        )
+        config['key'],
+        config['mode'],
+        config['lowest_octave'],
+        config['highest_octave'],
+    )
+
 
 @dataclass
 class Note():
