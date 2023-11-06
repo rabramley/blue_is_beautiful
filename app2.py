@@ -32,7 +32,7 @@ input("Press Enter to continue...")
 project._clock.stop()
 project._clock.join()
 
-sleep(1)
+sleep(0.2)
 
 midi.stop()
 midi.join()

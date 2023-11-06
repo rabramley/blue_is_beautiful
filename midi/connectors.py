@@ -17,6 +17,7 @@ class PortManager():
         self.out_ports = {}
 
         for p in config['ports']:
+            logging.warn(f"PortManager():__init__ {p['port_name']} opening.")
             in_port = self._find_in_port(p['port_name'])
 
             name = p['name'].lower()
@@ -32,6 +33,9 @@ class PortManager():
             else:
                 logging.warn(f"PortManager():__init__ {p['port_name']} out port not found.  Ignoring.")
 
+    def register_midi_queue(self, midi_queue: Midi):
+        self._midi_queue = midi_queue
+
     def _find_in_port(self, port_name: str):
         for port_name_actual in mido.get_input_names():
             if port_name_actual.startswith(port_name):
@@ -46,9 +50,9 @@ class PortManager():
         if port_name.lower() in self.in_ports:
             return self.in_ports[port_name.lower()].channels[channel]
 
-    def get_out_channel(self, port_name: str, channel: int, midi_queue: Midi):
+    def get_out_channel(self, port_name: str, channel: int):
         if port_name.lower() in self.out_ports:
-            return OutChannel(port_name.lower(), channel, midi_queue)
+            return OutChannel(port_name.lower(), channel, self._midi_queue)
 
     def debug_ports(self):
         for port_name_actual in mido.get_output_names():
@@ -61,10 +65,14 @@ class Midi(threading.Thread):
 
         self.queue = Queue()
         self._port_manager = port_manager
+        self._port_manager.register_midi_queue(self)
         self._done = False
 
     def queue_message(self, port_name: str, message: Message):
         self.queue.put((message, port_name))
+
+    def queue_port_message(self, port, message: Message):
+        self.queue.put((message, port))
 
     def tick(self):
         logging.debug('MIDI ticking')

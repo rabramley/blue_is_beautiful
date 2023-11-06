@@ -1,19 +1,42 @@
-bpm: 120
+bpm: 160
 clock:
- - out_port_name: UX16
- - out_port_name: WIDI Jack
+ - out_port_name: Midihub 1
+instruments:
+ - name: drums
+   port: Midihub 1
+   channel: 1
+   note_map:
+     - name: kick
+       note: 36
+       symbol: k
+     - name:  snare
+       note: 38
+       symbol: s
+     - name: ride
+       note: 51
+       symbol: r
 sequence_tracks:
-  - name: 'pad'
-    type: random
-    note_provider:
-      type: scale
-      key: C#
-      mode: dorian
-      lowest_octave: 4
-      highest_octave: 4
-    timing:
-      denominator: 8
-      gate_length: 2
-      pattern: 'xxxxx...'
-    port: WIDI Jack
-    channel: 0
+ - name: Kick
+   sequence_type: drum
+   denominator: 4
+   note_number: 36
+   velocity: 80
+   pattern: x.x.
+   port: Midihub 1
+   channel: 1
+ - name: Snare
+   sequence_type: drum
+   denominator: 4
+   note_number: 38
+   velocity: 100
+   pattern: .x.x
+   port: Midihub 1
+   channel: 1
+ - name: HHC
+   sequence_type: drum
+   denominator: 4
+   note_number: 51
+   pattern: xxxx
+   velocity: 50
+   port: Midihub 1
+   channel: 1

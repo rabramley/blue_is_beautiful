@@ -24,6 +24,7 @@ class ClockWatcher():
 class Clock(threading.Thread):
     NANO_SECONDS_PER_MINUTE = 60_000_000_000
     PPQN = 24
+    misses: int = 0
 
     def __init__(self, bpm: int):
         super().__init__()
@@ -62,23 +63,17 @@ class Clock(threading.Thread):
         else:
             self.commence()
 
-    def tick(self):
-        if not self._running:
-            return
-
-        logging.debug('Clock ticking')
-
-        if self._next < time.monotonic_ns():
-            for w in self._watchers:
-                w.tick(self._tick)
-
-            self._tick += 1
-            self._next += self._interval
-
     def run(self):
         while not self._done:
-            self.tick()
-            time.sleep(0.0000001)
+            if self._running:
+                if self._next < time.monotonic_ns():
+                    for w in self._watchers:
+                        w.tick(self._tick)
+
+                    self._tick += 1
+                    self._next += self._interval
+
+            time.sleep(0.001)
 
     def stop(self):
         self._done = True
