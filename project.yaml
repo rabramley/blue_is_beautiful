@@ -1,42 +1,35 @@
-bpm: 160
+bpm: 100
 clock:
  - out_port_name: Midihub 1
 instruments:
  - name: drums
+   pattern_type: drum
    port: Midihub 1
    channel: 1
-   note_map:
+   defaults:
+     symbols:
+      - symbol: '.'
+        velocity: 0
+      - symbol: '*'
+        velocity: 40
+      - symbol: x
+        velocity: 60
+      - symbol: X
+        velocity: 100
+      - symbol: '!'
+        velocity: 120        
+   timbres:
      - name: kick
        note: 36
-       symbol: k
      - name:  snare
        note: 38
-       symbol: s
      - name: ride
        note: 51
-       symbol: r
-sequence_tracks:
- - name: Kick
-   sequence_type: drum
-   denominator: 4
-   note_number: 36
-   velocity: 80
-   pattern: x.x.
-   port: Midihub 1
-   channel: 1
- - name: Snare
-   sequence_type: drum
-   denominator: 4
-   note_number: 38
-   velocity: 100
-   pattern: .x.x
-   port: Midihub 1
-   channel: 1
- - name: HHC
-   sequence_type: drum
-   denominator: 4
-   note_number: 51
-   pattern: xxxx
-   velocity: 50
-   port: Midihub 1
-   channel: 1
+parts:
+ - name: drums
+   instrument: drums
+   denominator: 8
+   patterns:
+     kick:  x . . . x . . . 
+     snare: . . x . . . x . 
+     ride:  x . x . x . x . 

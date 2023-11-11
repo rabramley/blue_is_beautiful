@@ -1,7 +1,6 @@
 import logging
 from midi.clock import Clock
-from midi.instrument import Instrument
-from midi.sequencing import get_sequencer
+from midi.sequencing import Instrument, get_part_patterns
 from midi.clock import MidiClockSender
 from midi.connectors import PortManager, Midi
 
@@ -13,7 +12,7 @@ class Project:
         self._midi = midi
         self._connectors = []
         self._sequencers = []
-        self._instruments = []
+        self._instruments = {}
 
         self._clock = Clock(bpm=project_data['bpm'])
 
@@ -35,13 +34,14 @@ class Project:
     def _register_instruments(self):
         for i in self._project_data.get('instruments', []):
             source = Instrument(i, self._port_manager)
-            self._instruments.append(source)
+            self._instruments[source.name] = source
     
     def _register_sequencers(self):
-        for s in self._project_data.get('sequence_tracks', []):
-            source = get_sequencer(self._clock, s, self._port_manager)
-            source.register_observer(source.port)
-            self._sequencers.append(source)
+        self._sequencers = get_part_patterns(
+            config=self._project_data.get('parts', []),
+            instruments=self._instruments,
+            clock=self._clock,
+        )
 
     def _register_clocks(self):
         for c in self._project_data['clock']:
