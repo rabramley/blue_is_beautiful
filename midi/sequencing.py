@@ -18,7 +18,7 @@ class Instrument:
 
         self.name = config['name']
         self.pattern_type = config['pattern_type']
-        self.port = port_manager.get_out_channel(config['port'], config['channel'])
+        self.port = port_manager.get_out_channel(config['port'])
         self.default_symbol_mapper = SymbolMapper(config.get('defaults', {}).get('symbols', []))
 
         self.timbres = {
@@ -28,28 +28,32 @@ class Instrument:
 
 
 class SymbolMapping:
-    def __init__(self, config: list, df_note=None, df_velocity=None) -> None:
+    def __init__(self, config: list, df_channel=None, df_note=None, df_velocity=None) -> None:
         self.symbol = config['symbol']
         self.velocity = config.get('velocity', df_velocity)
         self.note = config.get('note', df_note)
+        self.channel = config.get('channel', df_channel)
 
     def apply_defaults(self, defaults: Self):
         self.velocity = self.velocity or defaults.velocity
         self.note = self.note or defaults.note
+        self.channel = self.channel or defualts.channel
 
-    def apply_default_values(self, df_note: int, df_velocity: int):
+    def apply_default_values(self, df_channel: int, df_note: int, df_velocity: int):
         self.velocity = self.velocity or df_velocity
         self.note = self.note or df_note
+        self.channel = self.channel or df_channel
 
 
 class SymbolMapper:
-    def __init__(self, config: list, df_note=None, df_velocity=None) -> None:
+    def __init__(self, config: list, df_channel=None, df_note=None, df_velocity=None) -> None:
         self.df_note = df_note
         self.df_velocity = df_velocity
+        self.df_channel = df_channel
         self.map: dict = {
             s.symbol: s
             for s in [
-                SymbolMapping(c, df_note, df_velocity) for c in config
+                SymbolMapping(c, df_channel, df_note, df_velocity) for c in config
             ]
         }
 
@@ -58,6 +62,7 @@ class SymbolMapper:
             if k not in self.map:
                 m: SymbolMapping = deepcopy(v)
                 m.apply_default_values(
+                    self.df_channel,
                     self.df_note,
                     self.df_velocity,
                 )
@@ -71,6 +76,7 @@ class Timbre:
         self.name: str = config['name']
         self.symbol_mapper: SymbolMapper = SymbolMapper(
             config=config.get('symbols', []),
+            df_channel=config.get('channel', None),
             df_note=config.get('note', None),
             df_velocity=config.get('velocity', None),
         )
@@ -85,6 +91,7 @@ class Part:
 
         self.symbol_mapper = SymbolMapper(
             config=config.get('symbols', []),
+            df_channel=config.get('channel', None),
             df_note=config.get('note', None),
             df_velocity=config.get('velocity', None),
         )
@@ -122,6 +129,7 @@ class SymbolPattern:
                 result.append(Note(
                     note=m.note,
                     velocity=m.velocity,
+                    channel=m.channel,
                     tick_off=self.timing.get_next_tick_for_length(tick, 1),
                 ))
         
@@ -157,13 +165,13 @@ class PatternPlayer(ClockWatcher, MessageSource):
         clock.attach_watcher(self)
 
     def tick(self, tick):
-        split_point = self._notes_off.bisect_right(Note(note=0, velocity=0, tick_off=tick))
+        split_point = self._notes_off.bisect_right(Note(note=0, channel=0, velocity=0, tick_off=tick))
 
         for o in (self._notes_off.pop(index=0) for _ in range(split_point)):
-            self.send_message(Message('note_off', channel=0, note=o.note, velocity=o.velocity, time=0))
+            self.send_message(Message('note_off', channel=o.channel, note=o.note, velocity=o.velocity, time=0))
 
         for n in self.pattern.get_notes(tick):
-            self.send_message(Message('note_on', channel=0, note=n.note, velocity=n.velocity, time=0))
+            self.send_message(Message('note_on', channel=n.channel, note=n.note, velocity=n.velocity, time=0))
             self._notes_off.add(n)
 
     def restart(self):
@@ -190,5 +198,6 @@ def get_part_patterns(config: list, instruments: dict[Instrument], clock: Clock)
 @dataclass
 class Note():
     note: int
+    channel: int
     velocity: int
     tick_off: int

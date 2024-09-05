@@ -1,11 +1,11 @@
-bpm: 100
+bpm: 140
 clock:
  - out_port_name: Midihub 1
 instruments:
- - name: drums
+ - name: drum
    pattern_type: drum
-   port: Midihub 1
-   channel: 1
+   port: Midihub 2
+   channel: 0
    defaults:
      symbols:
       - symbol: '.'
@@ -20,16 +20,19 @@ instruments:
         velocity: 120        
    timbres:
      - name: kick
-       note: 36
-     - name:  snare
-       note: 38
-     - name: ride
-       note: 51
+       channel: 0
+       note: 60
+     - name: snare
+       channel: 1
+       note: 60
+     - name: hhc
+       channel: 2
+       note: 60
 parts:
- - name: drums
-   instrument: drums
+ - name: Drums
+   instrument: drum
    denominator: 8
    patterns:
      kick:  x . . . x . . . 
-     snare: . . x . . . x . 
-     ride:  x . x . x . x . 
+     snare:  . . x . . . x . 
+     hhc:  X x x x X x x x 

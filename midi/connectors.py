@@ -50,9 +50,9 @@ class PortManager():
         if port_name.lower() in self.in_ports:
             return self.in_ports[port_name.lower()].channels[channel]
 
-    def get_out_channel(self, port_name: str, channel: int):
+    def get_out_channel(self, port_name: str):
         if port_name.lower() in self.out_ports:
-            return OutChannel(port_name.lower(), channel, self._midi_queue)
+            return OutChannel(port_name.lower(), self._midi_queue)
 
     def debug_ports(self):
         for port_name_actual in mido.get_output_names():
@@ -101,7 +101,7 @@ class InChannel(MessageSource):
     pass
 
 
-class OutChannel(MessageDestination):
+class OutFixedChannel(MessageDestination):
     def __init__(self, port_name: str, channel: int, midi_queue: Midi):
         self.port_name = port_name
         self.channel = channel
@@ -111,6 +111,16 @@ class OutChannel(MessageDestination):
         logging.debug(f'Sending message to {self.port_name} on channel {self.channel}')
         new_message = message.copy(channel=self.channel)
         self._midi_queue.queue_message(self.port_name, new_message)
+
+
+class OutChannel(MessageDestination):
+    def __init__(self, port_name: str, midi_queue: Midi):
+        self.port_name = port_name
+        self._midi_queue = midi_queue
+
+    def receive_message(self, message: Message):
+        logging.debug(f'Sending message to {self.port_name}')
+        self._midi_queue.queue_message(self.port_name, message)
 
 
 class InPort():
