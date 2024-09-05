@@ -1,5 +1,0 @@
-python-rtmidi
-mido
-textual
-pyyaml
-sortedcontainers
