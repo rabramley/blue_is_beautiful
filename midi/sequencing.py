@@ -65,6 +65,7 @@ class SymbolMapper:
             else:
                 self.map[k].apply_defaults(v)
 
+
 class Timbre:
     def __init__(self, config: dict, df_symbol_mapper: SymbolMapper) -> None:
         self.name: str = config['name']
