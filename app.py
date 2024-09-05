@@ -11,7 +11,7 @@ traceback.install()
 with open('config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
-with open('project.yaml') as f:
+with open('song.yaml') as f:
     project = yaml.load(f, Loader=yaml.FullLoader)
 
 logging.basicConfig(level=logging.WARN)
