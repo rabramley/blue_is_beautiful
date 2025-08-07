@@ -94,6 +94,7 @@ class SymbolPattern:
         self.timing = timing
         self.pattern = pattern.split()
         self.symbol_mapper = symbol_mapper
+        self.last_beat = 0
 
     def get_notes(self, tick) -> list[Note]:
         result: list[Note] = []
@@ -101,8 +102,8 @@ class SymbolPattern:
         beat = self.timing.get_beat(tick)
 
         if beat:
-            i: int = int(beat % len(self.pattern))
-            symbol = self.pattern[i]
+            self.last_beat = beat
+            symbol = self.pattern[beat]
             m: SymbolMapper = self.symbol_mapper.map[symbol]
 
             if m.velocity:
@@ -114,20 +115,23 @@ class SymbolPattern:
                 ))
         
         return result
+    
+    def done(self):
+        return self.last_beat >= (len(self.pattern) - 1)
 
 
 class Timing:
     def __init__(self, config: dict) -> None:
         self.denominator = config.get('denominator', None)
 
-    def set_ppqn(self, ppqn):
-        self.ticks_per_beat = ppqn * 4 / self.denominator
+    def set_clock(self, clock: Clock):
+        self.ticks_per_beat = clock.PPQN * 4 / self.denominator
         
-    def get_beat(self, tick: int):
+    def get_beat(self, tick: int) -> int:
         if tick % self.ticks_per_beat > 0:
             return None
         
-        return tick // self.ticks_per_beat
+        return int(tick // self.ticks_per_beat)
     
     def get_next_tick_for_length(self, tick: int, beat_length: int) -> int:
         return tick + (self.ticks_per_beat * beat_length)
@@ -160,34 +164,48 @@ class Part:
             ))
     
     def register_clock(self, clock: Clock):
+        players: dict[Player] = []
+
         for p in self.patterns:
-            pp = PatternPlayer(
-                clock=clock,
-                pattern=p,
-            )
+            pp = Player()
+            pp.add_pattern(p)
             pp.register_observer(self.instrument.port)
+            players.append(pp)
+        
+        for p in players:
+            p.register_clock(clock)
 
 
-class PatternPlayer(ClockWatcher, MessageSource):
-    def __init__(self, clock: Clock, pattern: SymbolPattern) -> None:
+class Player(ClockWatcher, MessageSource):
+    def __init__(self) -> None:
         super().__init__()
         
-        self.clock: Clock = clock
-        self.pattern: SymbolPattern = pattern
+        self._patterns: list[SymbolPattern] = []
         self._notes_off = SortedList(key=lambda n: n.tick_off)
 
-        self.pattern.timing.set_ppqn(clock.PPQN)
-        clock.attach_watcher(self)
+    def add_pattern(self, pattern: SymbolPattern):
+        self._patterns.append(pattern)
 
+    def register_clock(self, clock: Clock):
+        for p in self._patterns:
+            p.timing.set_clock(clock)
+
+        clock.attach_watcher(self)
+    
     def tick(self, tick):
         split_point = self._notes_off.bisect_right(Note(note=0, channel=0, velocity=0, tick_off=tick))
 
         for o in (self._notes_off.pop(index=0) for _ in range(split_point)):
             self.send_message(Message('note_off', channel=o.channel, note=o.note, velocity=o.velocity, time=0))
 
-        for n in self.pattern.get_notes(tick):
-            self.send_message(Message('note_on', channel=n.channel, note=n.note, velocity=n.velocity, time=0))
-            self._notes_off.add(n)
+        for p in self._patterns:
+            if not p.done():
+                for n in p.get_notes(tick):
+                    self.send_message(Message('note_on', channel=n.channel, note=n.note, velocity=n.velocity, time=0))
+                    self._notes_off.add(n)
+
+    def done(self):
+        return all([p.done() for p in self._patterns])
 
     def restart(self):
         pass
