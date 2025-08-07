@@ -1,15 +1,21 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from itertools import chain
 from mido import Message
 from midi.clock import Clock, ClockWatcher
 from midi.connections import MessageSource
 from sortedcontainers import SortedList
 from midi.connectors import PortManager
-from midi.scales import Scale
 from copy import deepcopy
 from typing import Self
 from midi.connectors import PortManager
+
+
+@dataclass
+class Note():
+    note: int
+    channel: int
+    velocity: int
+    tick_off: int
 
 
 class Instrument:
@@ -37,7 +43,7 @@ class SymbolMapping:
     def apply_defaults(self, defaults: Self):
         self.velocity = self.velocity or defaults.velocity
         self.note = self.note or defaults.note
-        self.channel = self.channel or defualts.channel
+        self.channel = self.channel or defaults.channel
 
     def apply_default_values(self, df_channel: int, df_note: int, df_velocity: int):
         self.velocity = self.velocity or df_velocity
@@ -81,32 +87,6 @@ class Timbre:
             df_velocity=config.get('velocity', None),
         )
         self.symbol_mapper.apply_defaults(df_symbol_mapper)
-
-
-class Part:
-    def __init__(self, config: dict, instruments: dict[Instrument]) -> None:
-        self.instrument_name: str = config.get('instrument', None)
-        self.instrument: Instrument = instruments.get(self.instrument_name, None)
-        self.timing: Timing = Timing(config)
-
-        self.symbol_mapper = SymbolMapper(
-            config=config.get('symbols', []),
-            df_channel=config.get('channel', None),
-            df_note=config.get('note', None),
-            df_velocity=config.get('velocity', None),
-        )
-
-        self.symbol_mapper.apply_defaults(self.instrument.default_symbol_mapper)
-
-        self.patterns = []
-
-        for timbre_name, pattern in config.get('patterns', {}).items():
-            timbre_mapper: Timbre = self.instrument.timbres[timbre_name]
-            self.patterns.append(SymbolPattern(
-                pattern=pattern,
-                symbol_mapper=timbre_mapper.symbol_mapper,
-                timing=self.timing,
-            ))
 
 
 class SymbolPattern:
@@ -153,6 +133,41 @@ class Timing:
         return tick + (self.ticks_per_beat * beat_length)
 
         
+class Part:
+    def __init__(self, config: dict, project) -> None:
+        self.name : str = config['name']
+        self.instrument_name: str = config.get('instrument', None)
+        self.instrument: Instrument = project.get_instrument(self.instrument_name)
+        self.timing: Timing = Timing(config)
+
+        self.symbol_mapper = SymbolMapper(
+            config=config.get('symbols', []),
+            df_channel=config.get('channel', None),
+            df_note=config.get('note', None),
+            df_velocity=config.get('velocity', None),
+        )
+
+        self.symbol_mapper.apply_defaults(self.instrument.default_symbol_mapper)
+
+        self.patterns = []
+
+        for timbre_name, pattern in config.get('patterns', {}).items():
+            timbre_mapper: Timbre = self.instrument.timbres[timbre_name]
+            self.patterns.append(SymbolPattern(
+                pattern=pattern,
+                symbol_mapper=timbre_mapper.symbol_mapper,
+                timing=self.timing,
+            ))
+    
+    def register_clock(self, clock: Clock):
+        for p in self.patterns:
+            pp = PatternPlayer(
+                clock=clock,
+                pattern=p,
+            )
+            pp.register_observer(self.instrument.port)
+
+
 class PatternPlayer(ClockWatcher, MessageSource):
     def __init__(self, clock: Clock, pattern: SymbolPattern) -> None:
         super().__init__()
@@ -176,28 +191,3 @@ class PatternPlayer(ClockWatcher, MessageSource):
 
     def restart(self):
         pass
-
-
-def get_part_patterns(config: list, instruments: dict[Instrument], clock: Clock):
-    result = []
-
-    for c in config:
-        part = Part(c, instruments)
-
-        for p in part.patterns:
-            pp = PatternPlayer(
-                clock=clock,
-                pattern=p,
-            )
-            pp.register_observer(part.instrument.port)
-            result.append(pp)
-
-    return result
-
-
-@dataclass
-class Note():
-    note: int
-    channel: int
-    velocity: int
-    tick_off: int

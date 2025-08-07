@@ -16,7 +16,6 @@ with open('song.yaml') as f:
 
 logging.basicConfig(level=logging.WARN)
 
-
 port_manager = PortManager(config)
 port_manager.debug_ports()
 

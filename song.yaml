@@ -1,5 +1,5 @@
 bpm: 140
-clock:
+clock_outputs:
  - out_port_name: Midihub 1
 instruments:
  - name: drum
@@ -17,7 +17,7 @@ instruments:
       - symbol: X
         velocity: 100
       - symbol: '!'
-        velocity: 120        
+        velocity: 120
    timbres:
      - name: kick
        channel: 0
@@ -36,3 +36,7 @@ parts:
      kick:  x . . . x . . . 
      snare:  . . x . . . x . 
      hhc:  X x x x X x x x 
+sections:
+ - name: Intro
+   parts:
+    - drums

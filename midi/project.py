@@ -1,6 +1,6 @@
 import logging
 from midi.clock import Clock
-from midi.sequencing import Instrument, get_part_patterns
+from midi.sequencing import Instrument, Part
 from midi.clock import MidiClockSender
 from midi.connectors import PortManager, Midi
 
@@ -11,15 +11,19 @@ class Project:
         self._port_manager = port_manager
         self._midi = midi
         self._connectors = []
-        self._sequencers = []
         self._instruments = {}
+        self._parts = {}
 
         self._clock = Clock(bpm=project_data['bpm'])
 
         self._register_connectors()
         self._register_instruments()
-        self._register_sequencers()
-        self._register_clocks()
+        self._register_parts()
+        self._register_clock_with_parts()
+        self._register_clock_outputs()
+    
+    def get_instrument(self, name: str) -> Instrument:
+        return self._instruments.get(name, None)
     
     def _register_connectors(self):
         if 'connectors' not in self._project_data:
@@ -36,15 +40,17 @@ class Project:
             source = Instrument(i, self._port_manager)
             self._instruments[source.name] = source
     
-    def _register_sequencers(self):
-        self._sequencers = get_part_patterns(
-            config=self._project_data.get('parts', []),
-            instruments=self._instruments,
-            clock=self._clock,
-        )
+    def _register_parts(self):
+        for c in self._project_data.get('parts', []):
+            part = Part(c, self)
+            self._parts[part.name] = part
 
-    def _register_clocks(self):
-        for c in self._project_data['clock']:
+    def _register_clock_with_parts(self):
+        for p in self._parts.values():
+            p.register_clock(self._clock)
+
+    def _register_clock_outputs(self):
+        for c in self._project_data['clock_outputs']:
             MidiClockSender(c['out_port_name'].lower(), self._midi, self._clock)
 
     def position_description(self):

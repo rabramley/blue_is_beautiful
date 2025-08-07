@@ -17,21 +17,21 @@ class PortManager():
         self.out_ports = {}
 
         for p in config['ports']:
-            logging.warn(f"PortManager():__init__ {p['port_name']} opening.")
+            logging.warning(f"PortManager():__init__ {p['port_name']} opening.")
             in_port = self._find_in_port(p['port_name'])
 
             name = p['name'].lower()
             if in_port:
                 self.in_ports[name] = InPort(in_port, name)
             else:
-                logging.warn(f"PortManager():__init__ {p['port_name']} in port not found.  Ignoring.")
+                logging.warning(f"PortManager():__init__ {p['port_name']} in port not found.  Ignoring.")
 
             out_port = self._find_out_port(p['port_name'])
 
             if out_port:
                 self.out_ports[name] = OutPort(out_port, name)
             else:
-                logging.warn(f"PortManager():__init__ {p['port_name']} out port not found.  Ignoring.")
+                logging.warning(f"PortManager():__init__ {p['port_name']} out port not found.  Ignoring.")
 
     def register_midi_queue(self, midi_queue: Midi):
         self._midi_queue = midi_queue
@@ -56,7 +56,7 @@ class PortManager():
 
     def debug_ports(self):
         for port_name_actual in mido.get_output_names():
-            logging.warn(port_name_actual)
+            logging.warning(port_name_actual)
 
 
 class Midi(threading.Thread):
@@ -90,7 +90,7 @@ class Midi(threading.Thread):
             time.sleep(0.0000001)
 
     def stop(self):
-        logging.warn('Stoppings......')
+        logging.warning('Stoppings......')
         for name, op in self._port_manager.out_ports.items():
             op.port.reset()
 
